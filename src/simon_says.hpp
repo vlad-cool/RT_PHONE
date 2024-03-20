@@ -13,6 +13,7 @@ private:
     AtSender *at_sender;
 public:
     Simon(AtSender *at_sender);
+    void stop();
     void start_game();
     void enter_number(int n);
     void next_number();

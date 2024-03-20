@@ -8,6 +8,11 @@ Phone::Phone(AtSender *at_sender)
     this->at_sender = at_sender;
 }
 
+void Phone::stop()
+{
+    mode = NOTHING;
+}
+
 void Phone::call()
 {
     String s = "000000000";

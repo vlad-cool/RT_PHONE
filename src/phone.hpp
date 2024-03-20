@@ -26,6 +26,7 @@ private:
     void call();
 public:
     Phone(AtSender *at_sender);
+    void stop();
     void add_contact();
     void call_contact();
     void call_number();

@@ -8,8 +8,7 @@
 
 #define PULSE_PIN 2
 #define ENTERING_PIN A5
-
-#define DEBUG_UART
+#define RESET_PIN 3
 
 AtSender at_sender(100);
 Simon simon_says(&at_sender);
@@ -32,13 +31,16 @@ int j = 0;
 
 void pulse_interrupt();
 void enter_digit();
+void reset_interrupt();
 
 void setup()
 {
     pinMode(PULSE_PIN, INPUT_PULLUP);
     pinMode(ENTERING_PIN, INPUT_PULLUP);
+    pinMode(RESET_PIN, INPUT_PULLUP);
 
     attachInterrupt(digitalPinToInterrupt(PULSE_PIN), pulse_interrupt, HIGH);
+    attachInterrupt(digitalPinToInterrupt(RESET_PIN), reset_interrupt, HIGH);
 }
 
 void loop()
@@ -55,6 +57,27 @@ void pulse_interrupt()
         return;
     digit++;
     pulse_interrupt_time = micros();
+}
+
+void reset_interrupt()
+{
+    switch (mode)
+    {
+    case 1:
+    case 2:
+    case 3:
+    case 8:
+        phone.stop();
+        break;
+    case 9:
+        simon_says.stop();
+        break;
+    case 0:
+        settings.stop();
+        break;
+    }
+    mode = -1;
+    digit = 0;
 }
 
 void enter_digit()

@@ -6,6 +6,11 @@ Simon::Simon(AtSender *at_sender)
     this->at_sender = at_sender;
 }
 
+void Simon::stop()
+{
+    
+}
+
 void Simon::start_game()
 {
     index_1 = 0;

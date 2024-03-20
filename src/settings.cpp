@@ -7,6 +7,12 @@ Settings::Settings(AtSender *at_sender)
     this->at_sender = at_sender;
 }
 
+void Settings::stop()
+{
+    mode = NOTHING;
+    EEPROM.get(0, eeprom_layout);
+}
+
 bool Settings::get_echo()
 {
     return eeprom_layout.echo;
