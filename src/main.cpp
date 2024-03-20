@@ -4,6 +4,7 @@
 #include "at_sender.hpp"
 #include "simon_says.hpp"
 #include "phone.hpp"
+#include "settings.hpp"
 
 #define PULSE_PIN 2
 #define ENTERING_PIN A5
@@ -13,6 +14,7 @@
 AtSender at_sender(100);
 Simon simon_says(&at_sender);
 Phone phone(&at_sender);
+Settings settings(&at_sender);
 
 int i1 = 0;
 
@@ -30,7 +32,6 @@ int j = 0;
 
 void pulse_interrupt();
 void enter_digit();
-void call();
 
 void setup()
 {
@@ -38,10 +39,6 @@ void setup()
     pinMode(ENTERING_PIN, INPUT_PULLUP);
 
     attachInterrupt(digitalPinToInterrupt(PULSE_PIN), pulse_interrupt, HIGH);
-    
-    // at_sender = AtSender(50);
-    // simon_says = Simon(at_sender);
-    // phone = Phone(at_sender);
 }
 
 void loop()
@@ -78,12 +75,19 @@ void enter_digit()
             mode = 2;
             break;
         case 3:
-            simon_says.start_game();
+            phone.read_contact();
             mode = 3;
             break;
         case 8:
             phone.call_number();
             mode = 8;
+            break;
+        case 9:
+            simon_says.start_game();
+            mode = 9;
+            break;
+        case 0:
+            mode = 0;
             break;
         default:
             break;
@@ -91,15 +95,18 @@ void enter_digit()
         break;
     case 1:
     case 2:
+    case 3:
     case 8:
         if (phone.enter_number(digit))
         {
             mode = -1;
         }
         break;
-    case 3:
+    case 9:
         simon_says.enter_number(digit);
         break;
+    case 0:
+        settings.enter_number(digit);
     default:
         mode = -1;
         break;

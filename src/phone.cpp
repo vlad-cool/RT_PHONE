@@ -23,6 +23,11 @@ void Phone::add_contact()
     mode = ADDING_CONTACT_ID;
 }
 
+void Phone::read_contact()
+{
+    mode = READING_CONTACT;
+}
+
 void Phone::call_contact()
 {
     mode = CALLING_CONTACT;
@@ -42,7 +47,7 @@ bool Phone::enter_number(int n)
         if (contact_id < 0 || contact_id > 9)
         {
             mode = NOTHING;
-            at_sender->play_local_melody("3,2,1,1,1"); // Ошибка
+            at_sender->play_local_melody("3,2,1,1,1"); // Fail
             return true;
         }
         else
@@ -55,7 +60,7 @@ bool Phone::enter_number(int n)
         if (contact_id < 0 || contact_id > 9)
         {
             mode = NOTHING;
-            at_sender->play_local_melody("3,2,1,1,1"); // Ошибка
+            at_sender->play_local_melody("3,2,1,1,1"); // Fail
             return true;
         }
         else
@@ -66,7 +71,7 @@ bool Phone::enter_number(int n)
                     index++;
                 else
                 {
-                    at_sender->play_local_melody("3,2,1,1,1"); // Ошибка
+                    at_sender->play_local_melody("3,2,1,1,1"); // Fail
                     mode = NOTHING;
                     return true;
                 }
@@ -76,9 +81,14 @@ bool Phone::enter_number(int n)
                 buffer[index] = n;
                 index++;
                 if (index == 10)
-                {            
-                    EEPROM.put(contact_id * 10, buffer); 
-                    at_sender->play_local_melody("1,1,1,2,3"); // Успешно
+                {
+                    EEPROM.get(0, eeprom_layout);
+                    for (int i = 0; i < 10; i++)
+                    {
+                        eeprom_layout.contacts[n][i] = buffer[i];
+                    }
+                    EEPROM.put(0, eeprom_layout); 
+                    at_sender->play_local_melody("1,1,1,2,3"); // Success
                     mode = NOTHING;
                     return true;
                 }
@@ -86,8 +96,20 @@ bool Phone::enter_number(int n)
         }
         break;
     case CALLING_CONTACT:
-        EEPROM.get(n * 10, buffer);
+        EEPROM.get(0, eeprom_layout);
+        for (int i = 0; i < 10; i++)
+        {
+            buffer[i] =  eeprom_layout.contacts[n][i];
+        }
         call();
+        return true;
+        break;
+    case READING_CONTACT:
+        EEPROM.get(0, eeprom_layout);
+        for (int i = 0; i < 10; i++)
+        {
+            at_sender->play_local_sound(String(eeprom_layout.contacts[n][i]) + ".amr");
+        }
         return true;
         break;
     case CALLING_NUMBER:

@@ -12,7 +12,6 @@ private:
     int buffer[SIMON_BUFSIZE];
     AtSender *at_sender;
 public:
-    Simon();
     Simon(AtSender *at_sender);
     void start_game();
     void enter_number(int n);
