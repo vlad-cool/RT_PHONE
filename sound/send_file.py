@@ -28,6 +28,8 @@ with open(src, "rb") as f:
 
 stage = 0
 
+ser.write(f"AT+FSDEL=C:\\{dest}\r".encode())
+time.sleep(1)
 ser.write(f"AT+FSCREATE=C:\\{dest}\r".encode())
 time.sleep(1)
 while ser.in_waiting:
