@@ -10,17 +10,28 @@ Phone::Phone(AtSender *at_sender)
 
 void Phone::stop()
 {
+    if (mode == CALLING)
+    {
+        at_sender->drop_call();
+    }
     mode = NOTHING;
 }
 
 void Phone::call()
 {
-    String s = "000000000";
+    String s = "0000000000";
     for (int i = 0; i < 10; i++)
     {
         s[i] += buffer[i];
     }
     at_sender->call(s);
+    mode = CALLING;
+}
+
+void Phone::accept_call()
+{
+    at_sender->accept_call();
+    mode = CALLING;
 }
 
 void Phone::add_contact()
@@ -104,10 +115,10 @@ bool Phone::enter_number(int n)
         EEPROM.get(0, eeprom_layout);
         for (int i = 0; i < 10; i++)
         {
-            buffer[i] =  eeprom_layout.contacts[n][i];
+            buffer[i] = eeprom_layout.contacts[n][i];
         }
         call();
-        return true;
+        // return true;
         break;
     case READING_CONTACT:
         EEPROM.get(0, eeprom_layout);
@@ -124,8 +135,11 @@ bool Phone::enter_number(int n)
         {            
             call();
             mode = NOTHING;
-            return true;
+            // return true;
         }
+        break;
+    case CALLING:
+        at_sender->play_remote_sound("aboba.amr");
         break;
     default:
         break;

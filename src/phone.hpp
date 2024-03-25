@@ -15,6 +15,7 @@ private:
         CALLING_CONTACT,
         CALLING_NUMBER,
         READING_CONTACT,
+        CALLING,
     };
     int mode;
     int buffer[10];
@@ -32,6 +33,7 @@ public:
     void call_number();
     void read_contact();
     bool enter_number(int n);
+    void accept_call();
 };
 
 #endif

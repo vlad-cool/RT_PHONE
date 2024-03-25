@@ -20,7 +20,17 @@ AtSender::AtSender(int volume_level)
 
 void AtSender::call(String s)
 {
-    Serial.println("ATD" + s + ";");
+    Serial.println("ATD+7" + s + ";");
+}
+
+void AtSender::drop_call()
+{
+    Serial.println("ATH");
+}
+
+void AtSender::accept_call()
+{
+    Serial.println("ATA");
 }
 
 void AtSender::set_volume_level(int volume_level)
@@ -34,6 +44,12 @@ void AtSender::play_local_sound(String s)
     wait_playing();
 }
 
+void AtSender::play_remote_sound(String s)
+{
+    Serial.println("AT+CREC=4,C:\\" + s + ",1," + volume_level);
+    wait_playing();
+}
+
 void AtSender::play_local_melody(String s)
 {
     Serial.println("AT+CLDTMF=5,\"" + s + "\"");
@@ -42,15 +58,22 @@ void AtSender::play_local_melody(String s)
 void AtSender::wait_playing()
 {
     digitalWrite(LED_BUILTIN, LOW);
-    while (1)
+    bool flag = true;
+    while (flag)
     {
-        String s = Serial.readString();
-        if (s.length() < 8)
-            continue;
-        for (int i = 0; i < 8; i++)
-            if (s[i] != "+CREC: 0"[i])
-                continue;
-        break;
+        flag = false;
+        char c;
+        while (Serial.read() != '+') { }
+        delay(100);
+        for (int i = 1; i < 8; i++)
+        {
+            c = Serial.read();
+            if (c != "+CREC: 0"[i])
+            {
+                flag = true;
+                break;
+            }
+        }
     }
     digitalWrite(LED_BUILTIN, HIGH);
 }

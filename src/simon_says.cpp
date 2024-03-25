@@ -8,7 +8,7 @@ Simon::Simon(AtSender *at_sender)
 
 void Simon::stop()
 {
-    
+
 }
 
 void Simon::start_game()
@@ -22,7 +22,7 @@ void Simon::start_game()
 
 void Simon::enter_number(int n)
 {
-    at_sender->play_local_melody("9,4");
+    at_sender->play_local_melody(String("9,4,") + n);
     delay(2000);
 
     if (buffer[index_2] == n)
@@ -45,14 +45,25 @@ void Simon::enter_number(int n)
 
 void Simon::next_number()
 {
-    buffer[index_1] = random(0, 10);
+    int number = random(0, 10 - index_1);
+    for (int i = 0; i < index_1; i++)
+    {
+        if (number == buffer[i])
+        {
+            number++;
+            i = 0;
+        }
+    }
+    buffer[index_1] = number;
     index_1++;
     index_2 = 0;
 
-    for (int i = 0; i <= index_1; i++)
+    for (int i = 0; i < index_1; i++)
     {
         at_sender->play_local_sound(String(buffer[i]) + ".amr");
     }
+
+    at_sender->play_local_melody("1,2,3");
 }
 
 void Simon::win()
