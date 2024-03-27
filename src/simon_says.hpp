@@ -3,7 +3,7 @@
 
 #include "at_sender.hpp"
 
-#define SIMON_BUFSIZE 10
+#define SIMON_BUFSIZE 5
 
 class Simon {
 private:

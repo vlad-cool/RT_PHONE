@@ -13,12 +13,14 @@
 #define RING_IN_PIN 7
 #define RING_OUT_PIN 12
 
+#define BUZZER
+
 AtSender at_sender(100);
 Simon simon_says(&at_sender);
 Phone phone(&at_sender);
 Settings settings(&at_sender);
 
-int mode = -1;
+volatile int mode = -1;
 volatile int digit = 0;
 
 void pulse_interrupt();
@@ -33,10 +35,10 @@ void setup()
     pinMode(RING_IN_PIN, INPUT);
     pinMode(RING_OUT_PIN, OUTPUT);
 
-    at_sender = AtSender(30);
+    settings = Settings(&at_sender);
+    at_sender = AtSender(settings.get_volume_level());
     simon_says = Simon(&at_sender);
     phone = Phone(&at_sender);
-    settings = Settings(&at_sender);
 
     attachInterrupt(digitalPinToInterrupt(PULSE_PIN), pulse_interrupt, HIGH);
     attachInterrupt(digitalPinToInterrupt(CANCEL_PIN), reset_interrupt, CHANGE);
@@ -44,6 +46,7 @@ void setup()
 
 void loop()
 {
+    at_sender.set_volume_level(settings.get_volume_level());
     if (digitalRead(ENTERING_PIN))
     {
         if (digit > 1)
@@ -57,7 +60,26 @@ void loop()
     }
     if (digitalRead(RING_IN_PIN) == 0)
     {
-        digitalWrite(RING_OUT_PIN, (millis() % 3000) > 1500);
+        #ifdef BUZZER
+            if ((millis() % 4000) > 2000)
+            {
+                tone(RING_OUT_PIN, 2000);
+            }
+            else
+            {
+                noTone(RING_OUT_PIN); 
+            }
+        #else
+            digitalWrite(RING_OUT_PIN, (millis() % 4000) > 2000);
+        #endif
+    }
+    else
+    {
+        #ifdef BUZZER
+            noTone(RING_OUT_PIN); 
+        #else
+            digitalWrite(RING_OUT_PIN, 0);
+        #endif
     }
 }
 
@@ -70,46 +92,46 @@ void pulse_interrupt()
     {
         digit++;
     }
+    // Serial.println(digit);
 }
 
 void reset_interrupt()
 {
     static AntiRattle anti_rattle = AntiRattle();
-    if (!anti_rattle.test())
+    // if (anti_rattle.test())
     {
-        return;
-    }
-    if (digitalRead(CANCEL_PIN) == 0)
-    {
-        switch (mode)
+        if (digitalRead(CANCEL_PIN) == 0)
         {
-        case 1:
-        case 2:
-        case 3:
-        case 8:
-        case 10:
-            phone.stop();
-            break;
-        case 9:
-            simon_says.stop();
-            break;
-        case 0:
-            settings.stop();
-            break;
-        }
-        mode = -1;
-        digit = 0;
-    }
-    else
-    {
-        if (digitalRead(RING_IN_PIN) == 0)
-        {
-            phone.accept_call();
-            mode = 10;
+            switch (mode)
+            {
+            case 1:
+            case 2:
+            case 3:
+            case 8:
+            case 10:
+                phone.stop();
+                break;
+            case 9:
+                simon_says.stop();
+                break;
+            case 0:
+                settings.stop();
+                break;
+            }
+            mode = -1;
+            digit = 0;
         }
         else
         {
-            at_sender.play_local_melody("1,4,7,4,1,4,7");
+            if (digitalRead(RING_IN_PIN) == 0)
+            {
+                phone.accept_call();
+                mode = 10;
+            }
+            else
+            {
+                // at_sender.play_local_melody("1,4,7,4,1,4,7"); // Welcome
+            }
         }
     }
 }
@@ -118,7 +140,11 @@ void enter_digit()
 {
     int processed_digit = (digit + 9) % 10;
     digit = 0;
-    at_sender.play_local_melody(String("0,") + processed_digit);
+    // Serial.println("Num " + String(processed_digit));
+    if (settings.get_echo())
+    {
+        at_sender.play_local_sound(String(processed_digit) + ".amr");
+    }
     switch (mode)
     {
     case -1:
@@ -136,16 +162,21 @@ void enter_digit()
             phone.read_contact();
             mode = 3;
             break;
+        case 7:
+            at_sender.play_local_sound("aboba.amr");
+            break;
         case 8:
             phone.call_number();
             mode = 8;
             break;
         case 9:
+            at_sender.play_local_sound("denchik_says.amr");
             simon_says.start_game();
             mode = 9;
             break;
         case 0:
             mode = 0;
+            at_sender.play_local_sound("settings.amr");
             break;
         default:
             break;

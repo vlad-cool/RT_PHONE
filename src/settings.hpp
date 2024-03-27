@@ -13,9 +13,10 @@ private:
         ENTERING_ECHO,
         ENTERING_VOLUME_0,
         ENTERING_VOLUME_1,
+        RESETTING,
     };
     int mode;
-    int volume;
+    volatile int volume;
     EepromLayout eeprom_layout;
     AtSender *at_sender;
 public:

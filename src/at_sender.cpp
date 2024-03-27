@@ -59,11 +59,15 @@ void AtSender::wait_playing()
 {
     digitalWrite(LED_BUILTIN, LOW);
     bool flag = true;
+    unsigned long start = millis();
     while (flag)
     {
         flag = false;
         char c;
-        while (Serial.read() != '+') { }
+        do
+        {
+            c = Serial.read();
+        } while (c != '+');
         delay(100);
         for (int i = 1; i < 8; i++)
         {
@@ -73,6 +77,10 @@ void AtSender::wait_playing()
                 flag = true;
                 break;
             }
+        }
+        if (flag && millis() - start > 4000)
+        {
+            flag = false;
         }
     }
     digitalWrite(LED_BUILTIN, HIGH);

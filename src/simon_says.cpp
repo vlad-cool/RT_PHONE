@@ -2,7 +2,7 @@
 
 Simon::Simon(AtSender *at_sender)
 {
-    randomSeed(analogRead(A0));
+    randomSeed(analogRead(A6) + analogRead(A7) + analogRead(A2) + analogRead(A3) + analogRead(A4));
     this->at_sender = at_sender;
 }
 
@@ -15,16 +15,12 @@ void Simon::start_game()
 {
     index_1 = 0;
     index_2 = 0;
-    at_sender->play_local_melody("3,3,3,2,2,2,1,1,1");
-    delay(6000);
+    at_sender->play_local_sound("game_started.amr");
     next_number();
 }
 
 void Simon::enter_number(int n)
 {
-    at_sender->play_local_melody(String("9,4,") + n);
-    delay(2000);
-
     if (buffer[index_2] == n)
     {
         index_2++;
@@ -54,6 +50,7 @@ void Simon::next_number()
             i = 0;
         }
     }
+    number = random(0, 10);
     buffer[index_1] = number;
     index_1++;
     index_2 = 0;
@@ -63,19 +60,24 @@ void Simon::next_number()
         at_sender->play_local_sound(String(buffer[i]) + ".amr");
     }
 
-    at_sender->play_local_melody("1,2,3");
+    at_sender->play_local_melody("0"); // Ready to enter numbers
 }
 
 void Simon::win()
 {
-    at_sender->play_local_melody("3,2,1,1,2,3,3,2,1");
-    delay(8000);
+    if (random(0, 2))
+    {
+        at_sender->play_local_sound("won_1.amr");
+    }
+    else
+    {
+        at_sender->play_local_sound("won_2.amr");
+    }
     start_game();
 }
 
 void Simon::loose()
 {
-    at_sender->play_local_melody("1,2,3,1,2,1");
-    delay(4000);
+    at_sender->play_local_sound("lose.amr");
     start_game();
 }

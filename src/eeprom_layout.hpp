@@ -3,8 +3,8 @@
 
 struct EepromLayout
 {
-    int contacts[10][10];
-    int volume_level;
+    unsigned char contacts[10][10];
+    unsigned char volume_level;
     bool echo;
 };
 

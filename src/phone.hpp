@@ -17,7 +17,7 @@ private:
         READING_CONTACT,
         CALLING,
     };
-    int mode;
+    volatile int mode;
     int buffer[10];
     int contact_id;
     int index;

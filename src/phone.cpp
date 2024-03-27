@@ -59,24 +59,32 @@ bool Phone::enter_number(int n)
     switch (mode)
     {
     case ADDING_CONTACT_ID:
-        contact_id = n;
-        if (contact_id < 0 || contact_id > 9)
+        if (n < 0 || n > 9)
         {
             mode = NOTHING;
-            at_sender->play_local_melody("3,2,1,1,1"); // Fail
+            at_sender->play_local_sound("error.amr"); // Fail
             return true;
         }
         else
         {
-            index = -1;
-            mode = ADDING_CONTACT_PHONE;
+            if (eeprom_layout.contacts[n][0] < 10 && contact_id - n != 10)
+            {
+                at_sender->play_local_sound("contact_exists.amr");
+                contact_id = n + 10;
+            }
+            else
+            {
+                contact_id = n;
+                index = -1;
+                mode = ADDING_CONTACT_PHONE;
+            }
         }
         break;
     case ADDING_CONTACT_PHONE:
         if (contact_id < 0 || contact_id > 9)
         {
             mode = NOTHING;
-            at_sender->play_local_melody("3,2,1,1,1"); // Fail
+            at_sender->play_local_sound("error.amr"); // Fail
             return true;
         }
         else
@@ -87,7 +95,7 @@ bool Phone::enter_number(int n)
                     index++;
                 else
                 {
-                    at_sender->play_local_melody("3,2,1,1,1"); // Fail
+                    at_sender->play_local_sound("error.amr"); // Fail
                     mode = NOTHING;
                     return true;
                 }
@@ -101,10 +109,11 @@ bool Phone::enter_number(int n)
                     EEPROM.get(0, eeprom_layout);
                     for (int i = 0; i < 10; i++)
                     {
-                        eeprom_layout.contacts[n][i] = buffer[i];
+                        eeprom_layout.contacts[contact_id][i] = buffer[i];
                     }
                     EEPROM.put(0, eeprom_layout); 
-                    at_sender->play_local_melody("1,1,1,2,3"); // Success
+                    at_sender->play_local_sound("success.amr");
+                    contact_id = -1;
                     mode = NOTHING;
                     return true;
                 }
@@ -115,13 +124,26 @@ bool Phone::enter_number(int n)
         EEPROM.get(0, eeprom_layout);
         for (int i = 0; i < 10; i++)
         {
+            if (eeprom_layout.contacts[n][i] > 9)
+            {
+                at_sender->play_local_sound("contact_does_not_exists.amr");
+                return false;
+            }
             buffer[i] = eeprom_layout.contacts[n][i];
         }
         call();
-        // return true;
         break;
     case READING_CONTACT:
         EEPROM.get(0, eeprom_layout);
+        for (int i = 0; i < 10; i++)
+        {
+            if (eeprom_layout.contacts[n][i] > 9)
+            {
+                at_sender->play_local_sound("contact_does_not_exists.amr");
+                return false;
+            }
+        }
+        at_sender->play_local_sound("8.amr");
         for (int i = 0; i < 10; i++)
         {
             at_sender->play_local_sound(String(eeprom_layout.contacts[n][i]) + ".amr");
@@ -134,8 +156,6 @@ bool Phone::enter_number(int n)
         if (index == 10)
         {            
             call();
-            mode = NOTHING;
-            // return true;
         }
         break;
     case CALLING:
